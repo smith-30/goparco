@@ -17,8 +17,8 @@ func doQuery(db *gorm.DB) error {
 	return db.Exec(q).Error
 }
 
-func fetch(db *gorm.DB, query string) error {
-	return db.Exec(query).Error
+func fetch(db *gorm.DB, q string) error {
+	return db.Exec(q).Error
 }
 
 // type handler struct {

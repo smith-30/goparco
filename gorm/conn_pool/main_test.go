@@ -210,6 +210,30 @@ func Test_useIdleConn(t *testing.T) {
 	}
 }
 
+func BenchmarkUseIdleConn(b *testing.B) {
+	setting := genSetting("root", "root", "localhost", "13306", "test_database")
+	b.Run("", func(b *testing.B) {
+		sem := make(chan struct{}, 5)
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			sem <- struct{}{}
+			go func() {
+				defer func() {
+					<-sem
+				}()
+				connPoolDB := openDB(setting)
+				connPoolDB.DB().SetMaxOpenConns(100)
+				connPoolDB.DB().SetMaxIdleConns(0)
+				connPoolDB.DB().SetConnMaxLifetime(time.Hour)
+				defer connPoolDB.Close()
+				if err := fetch(connPoolDB, "select sleep(0.01)"); err != nil {
+					panic(err)
+				}
+			}()
+		}
+	})
+}
+
 func getQueries(num int) []string {
 	qs := make([]string, 0, num)
 	for index := 0; index < num; index++ {
