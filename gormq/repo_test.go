@@ -1,6 +1,7 @@
 package gormq
 
 import (
+	"database/sql/driver"
 	"reflect"
 	"testing"
 
@@ -9,9 +10,9 @@ import (
 )
 
 func emptyConn() *gorm.DB {
-	db, _, _ := sqlmock.New()
+	db, _, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	gdb, _ := gorm.Open("mysql", db)
-	gdb.LogMode(true)
+	// gdb.LogMode(true)
 	return gdb
 }
 
@@ -32,7 +33,10 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT * FROM `users` LIMIT 1").WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
@@ -45,7 +49,10 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT * FROM `users`  WHERE (name = ?) AND (email = ?) LIMIT 1").WithArgs(driver.Value("test"), driver.Value("test@gmail.com")).WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
@@ -60,7 +67,10 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT * FROM `users`  WHERE (name IN (?,?)) LIMIT 1").WithArgs(driver.Value("1"), driver.Value("2")).WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
@@ -74,13 +84,16 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT id, name FROM `users`  WHERE (name IN (?)) OR (email = ?) LIMIT 1").WithArgs(driver.Value("1"), driver.Value("test@com")).WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
 				q: func() *Query {
 					q := NewQuery([]string{"id, name"})
-					q.AddWhere("name IN (?)", []string{"1", "2"})
+					q.AddWhere("name IN (?)", []string{"1"})
 					q.AddOr("email = ?", "test@com")
 					return q
 				},
@@ -89,7 +102,10 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT id, name FROM `users` LIMIT 1").WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
@@ -103,28 +119,15 @@ func TestRepo_GetUser(t *testing.T) {
 		{
 			fields: fields{
 				db: func() *gorm.DB {
-					return emptyConn()
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT id, name FROM `users` ORDER BY id desc LIMIT 1").WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
 				},
 			},
 			args: args{
 				q: func() *Query {
 					q := NewQuery([]string{"id, name"})
-					q.AddWhere("id IN (?)", []int{1, 2})
-					q.EnableForUpdate()
-					return q
-				},
-			},
-		},
-		{
-			fields: fields{
-				db: func() *gorm.DB {
-					return emptyConn()
-				},
-			},
-			args: args{
-				q: func() *Query {
-					q := NewQuery([]string{"id, name"})
-					q.AddWhere("id IN (?)", []int{1, 2})
 					q.SetOrder("id desc")
 					return q
 				},
@@ -136,11 +139,13 @@ func TestRepo_GetUser(t *testing.T) {
 			a := &Repo{
 				db: tt.fields.db(),
 			}
-			got, _ := a.GetUser(tt.args.q())
-			// if (err != nil) != tt.wantErr {
-			// 	t.Errorf("Repo.GetUser() error = %v, wantErr %v", err, tt.wantErr)
-			// 	return
-			// }
+			got, err := a.GetUser(tt.args.q())
+			if (err != nil) != tt.wantErr {
+				if err != gorm.ErrRecordNotFound {
+					t.Errorf("Repo.GetUser() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Repo.GetUser() = %v, want %v", got, tt.want)
 			}

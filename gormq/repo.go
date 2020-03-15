@@ -66,7 +66,7 @@ func (a *Query) EnableForUpdate() {
 }
 
 func (a *Query) build(db *gorm.DB) *gorm.DB {
-	db.Select(a.SelectFields)
+	db = db.Select(a.SelectFields)
 	for _, item := range a.Conditions {
 		db = item(db)
 	}
@@ -79,6 +79,7 @@ func (a *Query) build(db *gorm.DB) *gorm.DB {
 	if a.ForUpdate != nil {
 		db = a.ForUpdate(db)
 	}
+
 	return db
 }
 
