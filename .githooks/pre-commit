@@ -1,0 +1,3 @@
+#!/bin/bash
+
+test -z "$(goimports -d $(find . -type f -name '*.go'| grep -v "/vendor/" | grep -v "mock") | tee /dev/stderr)"

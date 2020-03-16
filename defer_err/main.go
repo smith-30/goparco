@@ -12,6 +12,9 @@ func main() {
 			panic(p)
 		}
 	}()
+
+
+	
 	v, n, p := 0, 1, 2
 	fmt.Printf("%#v\n", handle(v))
 	fmt.Println()
