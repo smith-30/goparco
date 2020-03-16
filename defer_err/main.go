@@ -13,8 +13,9 @@ func main() {
 		}
 	}()
 
+	Url := "test"
+	fmt.Printf("%#v\n", Url)
 
-	
 	v, n, p := 0, 1, 2
 	fmt.Printf("%#v\n", handle(v))
 	fmt.Println()

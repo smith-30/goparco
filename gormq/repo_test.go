@@ -152,3 +152,51 @@ func TestRepo_GetUser(t *testing.T) {
 		})
 	}
 }
+
+func TestRepo_GetUsers(t *testing.T) {
+	type fields struct {
+		db func() *gorm.DB
+	}
+	type args struct {
+		q func() *Query
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    User
+		wantErr bool
+	}{
+		{
+			fields: fields{
+				db: func() *gorm.DB {
+					db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+					mock.ExpectQuery("SELECT id, name FROM `users` LIMIT 2").WillReturnRows(sqlmock.NewRows([]string{}))
+					gdb, _ := gorm.Open("mysql", db)
+					return gdb
+				},
+			},
+			args: args{
+				q: func() *Query {
+					q := NewQuery([]string{"id, name"})
+					q.SetLimit(2)
+					return q
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a := &Repo{
+				db: tt.fields.db(),
+			}
+			_, err := a.GetUsers(tt.args.q())
+			if (err != nil) != tt.wantErr {
+				if err != gorm.ErrRecordNotFound {
+					t.Errorf("Repo.GetUser() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			}
+		})
+	}
+}

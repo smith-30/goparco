@@ -1,6 +1,4 @@
-#!/bin/sh
-
-exit 1
-
+#!/bin/bash
 
 test -z "$(goimports -d $(find . -type f -name '*.go'| grep -v "/vendor/" | grep -v "mock") | tee /dev/stderr)"
+# test -z "$(golangci-lint run --tests --disable-all --enable=golint --enable=govet --enable=unused --enable=deadcode --enable=ineffassign --enable=structcheck | tee /dev/stderr)"
