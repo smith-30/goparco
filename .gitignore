@@ -31,3 +31,4 @@ tmp/
 build/
 .envrc
 gorm/docker
+graphql
