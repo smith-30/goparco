@@ -37,12 +37,51 @@ func RPolishCalc(v []string) float64 {
 				stack = append(stack, poppedVal_b/poppedVal_a)
 			}
 		}
-		fmt.Printf("%#v\n", stack)
 	}
 	return stack[0]
 }
 
+func Decode(v []string) string {
+	result := []string{}
+	for _, item := range v {
+		_, ok := strconv.Atoi(item)
+		if ok == nil {
+			result = append(result, item)
+		} else {
+			poppedVal_a := result[len(result)-1]
+			result = result[:len(result)-1]
+
+			poppedVal_b := result[len(result)-1]
+			result = result[:len(result)-1]
+
+			switch item {
+			case "+":
+				result = append(result, fmt.Sprintf("%v + %v", poppedVal_b, poppedVal_a))
+			case "-":
+				result = append(result, fmt.Sprintf("%v - %v", poppedVal_b, poppedVal_a))
+			case "*":
+				if 1 < len(poppedVal_a) {
+					poppedVal_a = fmt.Sprintf("( %v )", poppedVal_a)
+				}
+				if 1 < len(poppedVal_b) {
+					poppedVal_b = fmt.Sprintf("( %v )", poppedVal_b)
+				}
+				result = append(result, fmt.Sprintf("%v * %v", poppedVal_b, poppedVal_a))
+			case "/":
+				if 1 < len(poppedVal_a) {
+					poppedVal_a = fmt.Sprintf("( %v )", poppedVal_a)
+				}
+				if 1 < len(poppedVal_b) {
+					poppedVal_b = fmt.Sprintf("( %v )", poppedVal_b)
+				}
+				result = append(result, fmt.Sprintf("%v / %v", poppedVal_b, poppedVal_a))
+			}
+		}
+	}
+	return strings.Join(result, " ")
+}
+
 func main() {
-	v := "6 1 2 + * 8 -"
-	fmt.Printf("%#v\n", RPolishCalc(strings.Split(v, " ")))
+	v := "5 4 6 + 5 / *"
+	fmt.Printf("%v = %#v\n", Decode(strings.Split(v, " ")), RPolishCalc(strings.Split(v, " ")))
 }
