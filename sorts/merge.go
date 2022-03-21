@@ -1,9 +1,5 @@
 package sorts
 
-import (
-	"fmt"
-)
-
 var c int
 
 func mergeSort(src []int) []int {
