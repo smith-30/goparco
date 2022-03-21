@@ -12,15 +12,8 @@ jobs:
       - uses: reviewdog/action-setup@v1
         with:
           reviewdog_version: latest # Optional. [latest,nightly,v.X.Y.Z]
-      # - name: Run vet
-      #   run: |
-      #     go vet ./sorts/...
       - name: Install linters
         run: "( cd linters && go get golang.org/x/lint/golint )"
-
-      - name: Run vet
-        run: |
-          golint ./sorts/...
 
       - name: Run reviewdog
         env:
