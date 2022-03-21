@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// comment
 type Tree struct {
 	Value int
 	Nodes []*Tree
