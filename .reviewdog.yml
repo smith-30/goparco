@@ -6,5 +6,5 @@ runner:
   #     - "%f:%l:%c: %m"
   #   level: warning
   govet:
-    cmd: go vet ./...
+    cmd: go vet ./sorts/...
     format: govet
